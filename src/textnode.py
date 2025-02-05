@@ -16,8 +16,25 @@ class TextNode:
             self.src = src  
             self.alt = alt
 
-        def __eq__(self, compare):
-            return self.text == compare.text and self.text_type == compare.text_type and self.url == compare.url
+   #    def __eq__(self, compare):
+   #         return self.text == compare.text and self.text_type == compare.text_type and self.url == compare.url
+        
+   #     def __repr__(self):
+   #         return f"TextNode({self.text}, {self.text_type.value}, {self.url}, {self.src}, {self.alt})"
         
         def __repr__(self):
-            return f"TextNode({self.text}, {self.text_type.value}, {self.url}, {self.src}, {self.alt})"
+            if self.url:
+                return f'TextNode("{self.text}", {self.text_type}, "{self.url}")'
+            elif self.src:
+                return f'TextNode("{self.text}", {self.text_type}, "{self.src}")'
+            else:
+                return f'TextNode("{self.text}", {self.text_type})'
+            
+        def __eq__(self, compare):
+            if not isinstance(compare, TextNode):
+                return False
+            return (self.text == compare.text and 
+                    self.text_type == compare.text_type and 
+                    self.url == compare.url and
+                    self.src == compare.src and
+                    self.alt == compare.alt)
