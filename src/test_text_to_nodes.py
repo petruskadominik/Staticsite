@@ -1,5 +1,5 @@
 import unittest
-from text_to_nodes import text_to_text_nodes
+from text_to_nodes import text_to_text_nodes, markdown_to_blocks
 from textnode import TextType, TextNode
 
 class TestTextToTextNodes(unittest.TestCase):
@@ -48,6 +48,5 @@ class TestTextToTextNodes(unittest.TestCase):
         ]
         self.assertEqual(nodes, expected)
         
-
 if __name__ == "__main__":
     unittest.main()
