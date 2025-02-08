@@ -1,5 +1,5 @@
 import unittest
-from blocks import markdown_to_blocks
+from blocks import markdown_to_blocks, block_to_block_type
 
 class TestTextToTextNodes(unittest.TestCase):
 
@@ -80,6 +80,77 @@ Some text
         expected = ['# Header', 'Regular paragraph\nhere', '* List item 1\n  * Nested item\n    * Deep nested\n* Back to level 1']
         result = markdown_to_blocks(md)
         self.assertEqual(result, expected)
+
+
+
+
+    def test_block_types_headings(self):
+        block1 = "# Heading"
+        block2 = "## Heading"
+        block3 = "### Heading"
+        block4 = "#### Heading"
+        block5 = "##### Heading"
+        block6 = "###### Heading"
+        block7 = "####### Heading"
+        self.assertEqual(block_to_block_type(block1), "heading")
+        self.assertEqual(block_to_block_type(block2), "heading")
+        self.assertEqual(block_to_block_type(block3), "heading")
+        self.assertEqual(block_to_block_type(block4), "heading")
+        self.assertEqual(block_to_block_type(block5), "heading")
+        self.assertEqual(block_to_block_type(block6), "heading")
+        self.assertEqual(block_to_block_type(block7), "paragraph")
+
+    def test_block_types_paragraph(self):
+        block1 = "text"
+        block2 = "######## aslo text"
+        block3 = "````not code````"
+        self.assertEqual(block_to_block_type(block1), "paragraph")
+        self.assertEqual(block_to_block_type(block2), "paragraph")
+        self.assertEqual(block_to_block_type(block3), "paragraph")
+
+    
+    def test_unordered_list(self):
+        block = "* item one\n* item two\n- item three"
+        self.assertEqual(block_to_block_type(block), "unordered_list")
+
+    def test_ordered_list(self):
+        block = "1. item one\n2. item two\n3. item three"
+        self.assertEqual(block_to_block_type(block), "ordered_list")
+
+    def test_ordered_list_long(self):
+        block = "1. item one\n2. item two\n3. item three\n4. item four\n5. item five\n6. item six\n7. item seven\n8. item eight\n9. item nine\n10. item ten\n11. item eleven\n12. item twelve"
+        self.assertEqual(block_to_block_type(block), "ordered_list")
+
+    def test_invalid_ordered_list(self):
+        block1 = "1. item one\n2. item two\n4. item four"
+        self.assertEqual(block_to_block_type(block1), "paragraph")
+
+    def test_quote_blocks(self):
+        block = "> This is a quote\n> Multiple lines\n> In the quote"
+        self.assertEqual(block_to_block_type(block), "quote")
+
+    def test_invalid_lists(self):
+        block1 = "1.missing space"  # no space after period
+        block2 = "* no space*\nafter asterisk"  # second line not a list item
+        block3 = "-no space-after dash"  # no space after dash
+        block4 = "* first line\njust text"  # second line not a list item
+        self.assertEqual(block_to_block_type(block1), "paragraph")
+        self.assertEqual(block_to_block_type(block2), "paragraph")
+        self.assertEqual(block_to_block_type(block3), "paragraph")
+        self.assertEqual(block_to_block_type(block4), "paragraph")
+
+    def test_code_blocks(self):
+        block1 = "```\nsome code\n```"
+        block2 = "```python\ndef hello():\n    print('hello')\n```"
+        self.assertEqual(block_to_block_type(block1), "code")
+        self.assertEqual(block_to_block_type(block2), "code")
+
+    def test_invalid_quotes(self):
+        block1 = "> first line\nnot a quote line"  # second line missing >
+        block2 = ">> double quote marks"  # multiple > characters
+        self.assertEqual(block_to_block_type(block1), "paragraph")
+        self.assertEqual(block_to_block_type(block2), "paragraph")
+        
 
 if __name__ == "__main__":
     unittest.main()
