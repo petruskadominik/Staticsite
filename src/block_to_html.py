@@ -1,10 +1,12 @@
 from blocks import markdown_to_blocks, block_to_block_type
-from htmlnode import HTMLNode, LeafNode, ParentNode
+from htmlnode import HTMLNode, LeafNode, ParentNode, text_node_to_html_node
 from text_to_nodes import text_to_text_nodes
 
 def markdown_to_html_node(markdown):
     blocks = markdown_to_blocks(markdown)
     block_nodes = []
+    if not blocks:
+        return HTMLNode(tag="div", value=None, children=[], props={})
     for block in blocks:
         if block_to_block_type(block) == "heading":
             lines = block.splitlines()
@@ -21,33 +23,51 @@ def markdown_to_html_node(markdown):
         elif block_to_block_type(block) == "code":
             block_nodes.append(code_block_to_node(block))
     parent = ParentNode(tag = 'div', children = block_nodes)
-    return parent
+    return parent.to_html()
 
 def heading_line_to_node(line):
     level = len(line) - len(line.lstrip('#'))
-    return LeafNode(f"h{level}", line.lstrip('#').lstrip())
+    line = line.lstrip('#').lstrip()
+    text_nodes = text_to_text_nodes(line)
+    kids = []
+    for node in text_nodes:
+            kids.append(text_node_to_html_node(node))
+    return ParentNode(f"h{level}", children= kids)
 
 def paragraph_block_to_node(block):
     text = "<br>".join(block.splitlines())
-    return LeafNode(tag='p', value=text)
+    text_nodes = text_to_text_nodes(text)
+    kids = []
+    for node in text_nodes:
+            kids.append(text_node_to_html_node(node))
+    return ParentNode(tag='p', children=kids)
 
 def unordered_list_block_to_node(block):
-    kids = []
+    parents = []
     lines = block.splitlines()
     for line in lines:
+        kids = []
         line = line.strip()
         line = line[2:].strip()
-        kids.append(LeafNode(tag = 'li', value = line))
-    return ParentNode(tag = 'ul', children = kids)
+        text_nodes = text_to_text_nodes(line)
+        for node in text_nodes:
+            kids.append(text_node_to_html_node(node))
+        parents.append(ParentNode(tag = 'li', children = kids))
+    return ParentNode(tag = 'ul', children = parents)
 
 def ordered_list_block_to_node(block):
-    kids = []
+    
+    parents = []
     lines = block.splitlines()
     for line in lines:
+        kids = []
         line = line.strip()
         line = line[2:].strip()
-        kids.append(LeafNode(tag = 'li', value = line))
-    return ParentNode(tag = 'ol', children = kids)
+        text_nodes = text_to_text_nodes(line)
+        for node in text_nodes:
+            kids.append(text_node_to_html_node(node))
+        parents.append(ParentNode(tag = 'li', children = kids))
+    return ParentNode(tag = 'ol', children = parents)
 
 def blockquote_block_to_node(block):
     lines = block.splitlines()
@@ -59,7 +79,10 @@ def blockquote_block_to_node(block):
             text += " " + line
         else:
             text = line
-    kids = [LeafNode(tag="p", value = text)]
+    text_nodes = text_to_text_nodes(text)
+    kids = []
+    for node in text_nodes:
+        kids.append(text_node_to_html_node(node))
     return ParentNode(tag = 'blockquote', children = kids)
 
 def code_block_to_node(block):
@@ -73,55 +96,3 @@ def code_block_to_node(block):
             text = lines[i]
     child = [LeafNode(tag = 'code', value = text)]
     return ParentNode(tag = 'pre', children = child)
-
-
-    
-
-
-
-
-
-
-md = """
-# Heading 1
-
-This is the first paragraph.
-It spans multiple lines,
-but it’s still a single paragraph.
-
-## Heading 2
-
-This is another paragraph.
-It is shorter.
-
-### Heading 3
-
-- Item 1
-- Item 2
-
-1. Item 1
-2. Item 2
-3. Item 3
-
-> This is a blockquote.
-> Over multiple
-> lines
-
-Another paragraph to end with
-
-```
-This is a code block
-It preserves whitespace
-And can span multiple lines
-```
-
-```
-print("here are some ```backticks``` in code")
-def func():
-    return "test"
-```
-"""
-
-
-node = markdown_to_html_node(md)
-print(node)

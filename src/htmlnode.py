@@ -10,7 +10,7 @@ class HTMLNode:
         self.props = {} if props is None else props
 
     def to_html(self):
-        raise NotImplementedError
+        raise NotImplementedError   
     
     def props_to_html(self):
         output = ""
@@ -81,7 +81,9 @@ class ParentNode(HTMLNode):
         super().__init__(tag, None, children, props)
         self.props = {} if props is None else props
         
-        
+    def __repr__(self):
+        children_repr = ', '.join(repr(child) for child in self.children) if self.children else "[]"
+        return f"HTMLNode(tag={self.tag}, value={repr(self.value)}, children=[\n{children_repr}], props={self.props})"
         
         
     def to_html(self):
@@ -102,13 +104,13 @@ def text_node_to_html_node(text_node):
         return LeafNode(tag = 'code', value=text_node.text)
     elif text_node.text_type == TextType.LINK:
         if not text_node.url:
-            raise Exception("LINK TextType requires a url!")
+            raise Exception("TextType.LINK must include a 'url'.")
         return LeafNode(tag = 'a', value=text_node.text, props={"href": text_node.url})
     elif text_node.text_type == TextType.IMAGE:
         if not text_node.src:
-            raise Exception("IMAGE TextType requires Scrd!")
+            raise Exception("TextType.IMAGE must include a 'src'.")
         if not text_node.alt:
-            raise Exception("IMAGE TextType requires Alt!")        
+            raise Exception("TextType.IMAGE must include an 'alt'.")        
         return LeafNode(tag = 'img', value="", props={"src": text_node.src, "alt": text_node.alt})
     else:
         raise Exception("Invalid TextType")
